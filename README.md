@@ -31,6 +31,9 @@ Test ansible playbook syntax
     ansible-playbook ./provisioning/playbook.yml --syntax-check
 
 
+bootstrap.sh is to install python or other required packages if not installed in vm boc
+
+
 Run
 
     vagrant up
@@ -38,7 +41,12 @@ Run
 
 run vagrant after error
 
+
     vagrant reload --provision
+
+manual install check vm log
+
+    vagrant ssh
 
 
 Point your browser to [freeboard dashboard](http://localhost:1880/) to see the plain dashboard, to [freeboard websocket demo](http://localhost:1880/?load=demo_websocket_counter.json) to see the websocket counter demo and to [Node Red](http://localhost:1880/admin/) to access the Node Red configuration interface.
