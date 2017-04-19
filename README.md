@@ -1,4 +1,4 @@
-# Vagrant Node Red with Freeboard
+# Vagrant Node Red with Freeboard on Ubuntu 16.04 box
 
 This is a [Vagrant](http://vagrantup.com/)/[Ansible](http://www.ansible.com/) setup for running [node red](http://nodered.org/) in conjunction with the [freeboard](http://freeboard.io/) dashboard.
 
@@ -6,11 +6,40 @@ Inspired by this [Gist](https://gist.github.com/dceejay/fb47301b759222e05f84).
 
 ## Installation / Usage
 
+Install virtualbox
 
-Install Vagrant and Ansible on your platform.
+    wget https://www.virtualbox.org/download/oracle_vbox_2016.asc
+    sudo apt-key add -y oracle_vbox_2016.asc
+    #ubuntu 16.04/LM 18
+    sudo echo " deb http://download.virtualbox.org/virtualbox/debian xenial contrib" | sudo tee -a /etc/apt/sources.list    
+    sudo apt-get update
+    sudo apt-get install dkms virtualbox-5.1
+
+Install Vagrant
+
+    wget https://releases.hashicorp.com/vagrant/1.9.3/vagrant_1.9.3_x86_64.deb
+    sudo dpkg -i vagrant*.deb
+
+
+Install Ansible and git on your platform.
+
+        sudo apt install ansible  git
+
+
+Test ansible playbook syntax
+
+    ansible-playbook ./provisioning/playbook.yml --syntax-check
+
+
 Run
 
     vagrant up
+
+
+run vagrant after error
+
+    vagrant reload --provision
+
 
 Point your browser to [freeboard dashboard](http://localhost:1880/) to see the plain dashboard, to [freeboard websocket demo](http://localhost:1880/?load=demo_websocket_counter.json) to see the websocket counter demo and to [Node Red](http://localhost:1880/admin/) to access the Node Red configuration interface.
 

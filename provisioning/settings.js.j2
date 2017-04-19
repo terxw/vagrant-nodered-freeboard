@@ -90,7 +90,11 @@ module.exports = {
     // The following property can be used in place of 'httpAdminAuth' and 'httpNodeAuth',
     // to apply the same authentication to both parts.
     //httpAuth: {user:"user",pass:"5f4dcc3b5aa765d61d8327deb882cf99"},
-
+adminAuth: require('node-red-contrib-ldap-auth').setup({
+    uri:'ldap://url.to.server',
+    base: 'ou=group,o=company.com',
+    filterTemplate: 'mail={{username}}'
+}),
     // The following property can be used to enable HTTPS
     // See http://nodejs.org/api/https.html#https_https_createserver_options_requestlistener
     // for details on its contents.

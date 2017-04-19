@@ -8,9 +8,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # All Vagrant configuration is done here. The most common configuration
   # options are documented and commented below. For a complete reference,
   # please see the online documentation at vagrantup.com.
-
+  #config.ssh.username = 'root'
+  #config.ssh.password = 'vagrant'
+  #config.ssh.insert_key = 'true'
   # Every Vagrant virtual environment requires a box to build off of.
-  config.vm.box = "ubuntu/trusty64"
+  #config.vm.box = "ubuntu/trusty64"
+  #yconfig.vm.box = "ubuntu/xenial64"
+  config.vm.box = "bento/ubuntu-16.04"
+  config.vm.provision :shell, :path => "bootstrap.sh"
   config.vm.network :forwarded_port, host: 1880, guest: 1880
 
   config.vm.provision "ansible" do |ansible|
@@ -22,6 +27,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provider :virtualbox do |vb|
     vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
     vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+    vb.customize ["modifyvm", :id, "--memory", "1024", "--cpus", "1"]
+    vb.customize ["modifyvm", :id, "--cpuexecutioncap", "50"]
   end
 
   # Disable automatic box update checking. If you disable this, then

@@ -12,8 +12,8 @@
   vars:
 # settings for Vagrant Box
     platform: vagrant
-    startup_method: upstart
-    server_name: localhost
+    startup_method: systemd
+    server_name: 192.168.1.2
     http_port: 1880
     install_path: /vagrant
     run_as: vagrant
@@ -41,13 +41,37 @@
     - name: quick workaround for npm modules expecting nodejs to be node
       file: src=/usr/bin/nodejs dest=/usr/bin/node state=link
 
+    - name: "install first requiered packages"
+      npm: "name={{item}}  global=yes"
+      with_items:
+        - node-pre-gyp
+        - node-gyp
+
+    - name: "install searialport with commandline options"
+      args: "chdir={{ install_path }}/node-red/"
+      command: "/usr/bin/npm install --no-bin-links serialport"
+
+    - stat: path={{ install_path }}/node-red/red.js
+      register: nodered_git_rules
+
     - name: install node-red from github
       git: repo=git://github.com/node-red/node-red.git
            accept_hostkey=yes
            dest={{ install_path }}/node-red
+      ignore_errors: True
+      when: nodered_git_rules.stat.exists == True
 
     - name: install node-red from local checkout with npm
       npm: path={{ install_path }}/node-red
+
+    - name: instal grunt to build node/red
+      npm: "name={{item}}  global=yes"
+      with_items:
+        - grunt-cli
+
+    - name: actual build of node-red
+      args: "chdir={{ install_path }}/node-red/"
+      command: "grunt build"
 
     - name: install required npm packages
       npm: name={{item}} path={{ install_path }}/node-red/
@@ -56,7 +80,7 @@
         - js2xmlparser
         - arduino-firmata
         - fs.notify
-        - serialport
+ #      - serialport
         - redis
         - mongodb
 
@@ -78,6 +102,9 @@
         - ntwitter
         - oauth
 
+    - name: node auth module
+      npm: name=node-red-contrib-ldap-auth global=yes
+
     - name: install Beaglebone Black node
       npm: name={{item}} path={{ install_path }}/node-red/
       with_items:
@@ -89,18 +116,28 @@
       copy: src=flows.json dest={{ install_path }}/node-red/
 
     # install freeboard
+    - stat: path={{ install_path }}/freeboard/package.json
+      register: freeboard_git_rules_1
+
     - name: install freeboard.io from git
       git: repo=git://github.com/Freeboard/freeboard.git
            accept_hostkey=yes
            dest={{ install_path }}/freeboard
+      ignore_errors: True
+      when: freeboard_git_rules_1.stat.exists == True
 
-#    - name: install freeboard.io plugins for websockets from git
-#      git: repo=git://github.com/Freeboard/plugins.git
-#           accept_hostkey=yes
-#           dest={{ install_path }}/freeboard-plugins
+    - stat: path={{ install_path }}/freeboard-plugins/datasources/plugin_node.js
+      register: freeboard_git_rules_2
 
-#    - name: copy freeboard plugin to the right location
-#      copy: src=../freeboard-plugins/datasources/plugin_node.js dest={{ install_path }}/freeboard/js/freeboard/plugins/
+    - name: install freeboard.io plugins for websockets from git
+      git: repo=git://github.com/Freeboard/plugins.git
+           accept_hostkey=yes
+           dest={{ install_path }}/freeboard-plugins
+      ignore_errors: True
+      when: freeboard_git_rules_2.stat.exists == True
+
+    - name: copy freeboard plugin to the right location
+      copy: src=../freeboard-plugins/datasources/plugin_node.js dest={{ install_path }}/freeboard/js/freeboard/plugins/
 
     - name: get freeboard websocket plugin from gist
       get_url: url=https://gist.githubusercontent.com/dceejay/fb47301b759222e05f84/raw/645966d6dc9b7ce3a06783d5aaa09ca6b1ae00fd/wsDataSourcePlugin.js dest={{ install_path }}/freeboard/js/
@@ -112,7 +149,7 @@
       template: src=demo_websocket_counter.json.j2 dest={{ install_path }}/freeboard/demo_websocket_counter.json
 
     - name: create service user if not existent
-      user: name={{ run_as }} createhome=no shell=/usr/sbin/nologin
+      user: name={{ run_as }} createhome=no shell=/bin/bash
 
     - name: set ownership of the node red directory to the system user
       file: path={{ install_path }} owner={{ run_as }} group={{ run_as }} recurse=yes
@@ -128,7 +165,7 @@
     - name: start node red
       service: name=nodered state=started
 
-    - debug: "msg=Browse here for websocket counter example dashboard: http://{{ server_name }}:{{ http_port }}/?load=demo_websocket_counter.json "
-    - debug: "msg=Browse here for node red configuration editor: http://{{ server_name }}:{{ http_port }}/admin "
+    #- debug: "msg=Browse here for websocket counter example dashboard: http://{{ server_name }}:{{ http_port }}/?load=demo_websocket_counter.json "
+    #- debug: "msg=Browse here for node red configuration editor: http://{{ server_name }}:{{ http_port }}/admin "
 
   handlers:
