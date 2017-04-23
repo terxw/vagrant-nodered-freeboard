@@ -91,7 +91,7 @@ module.exports = {
     // to apply the same authentication to both parts.
     //httpAuth: {user:"user",pass:"5f4dcc3b5aa765d61d8327deb882cf99"},
 adminAuth: require('node-red-contrib-ldap-auth').setup({
-    uri:'ldap://url.to.server',
+    uri:'ldap://{{server_name}}',
     base: 'ou=group,o=company.com',
     filterTemplate: 'mail={{username}}'
 }),

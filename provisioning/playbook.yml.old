@@ -49,17 +49,43 @@
         - node-pre-gyp
         - node-gyp
         - grunt-cli
-        - serialport
 
-    - name: install node-red from package manager
-      npm:  "name={{item}} path={{ install_path }}/node-red"
-      with_items:
-        - node-red
+    - stat: path={{ install_path }}/node-red/red.js
+      register: nodered_git_rules
 
-    - name: "install searialport with commandline options"
-      args: "chdir={{ install_path }}/node-red/"
-      command: "/usr/bin/npm install --no-bin-links serialport"
+    - name: install node-red from github
+      git: repo=git://github.com/node-red/node-red.git
+           accept_hostkey=yes
+           dest={{ install_path }}/node-red
+      ignore_errors: True
+      when: nodered_git_rules.stat.exists == false
 
+    # - name: update node-red from github if already cloned
+    #   git: repo=git://github.com/node-red/node-red.git
+    #        update=yes
+    #        accept_hostkey=yes
+    #        dest={{ install_path }}/node-red
+    #   #ignore_errors: True
+    #   when: nodered_git_rules.stat.exists == True
+
+    - name: "install serialport with commandline options"
+      local_action:
+         module: shell
+         _raw_params: "/usr/bin/npm install --no-bin-links serialport"
+         chdir: "{{ install_path }}/node-red/"
+         became: true
+
+    # - name: "install grunt localy"
+    #   local_action:
+    #      module: shell
+    #      _raw_params: "/usr/bin/npm install grunt --save-dev"
+    #      chdir: "{{ install_path }}/node-red/"
+
+    - name: actual build of node-red
+      local_action:
+         module: shell
+         _raw_params: "/usr/bin/npm run build"
+         chdir: "{{ install_path }}/node-red/"
 
     - name: install node-red from local checkout with npm
       npm: path={{ install_path }}/node-red
@@ -67,7 +93,7 @@
     - name: install required npm packages
       npm: name={{item}} path={{ install_path }}/node-red/
       with_items:
-        - serialport
+      #- serialport
         - feedreader
         - js2xmlparser
         - arduino-firmata
